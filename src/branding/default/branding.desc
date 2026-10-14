@@ -218,6 +218,13 @@ slideshow:               "show.qml"
 # An image slideshow does not need to have the API defined.
 slideshowAPI: 2
 
+# By default the QML slideshow is drawn into the installer's window by a
+# QQuickWidget. Set this to true to run it in a window of its own, embedded
+# in the page, for slideshow items that need a surface of the windowing
+# system to themselves (for instance, a stereo picture handed to the
+# compositor). Only for QML slideshows; the default is false.
+# slideshowWindow: true
+
 
 # These options are to customize online uploading of logs to pastebins:
 #  - type      : Defines the kind of pastebin service to be used. Currently

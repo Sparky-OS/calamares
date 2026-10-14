@@ -190,6 +190,15 @@ public:
      *  - -1    For oldschool image-slideshows.
      */
     int slideshowAPI() const { return m_slideshowAPI; }
+    /** @brief Run the QML slideshow in a window of its own?
+     *
+     * A QML slideshow normally runs inside a QQuickWidget, which has no
+     * window of the windowing system to itself. A slideshow whose items
+     * need one (a stereo picture handed to the compositor on its own
+     * surface, say) sets *slideshowWindow* in the branding, and runs in a
+     * QQuickView embedded in the page instead. (API == 1 or 2)
+     */
+    bool slideshowWindow() const { return m_slideshowWindow; }
 
     QPixmap image( Branding::ImageEntry imageEntry, const QSize& size ) const;
 
@@ -299,6 +308,7 @@ private:
     QStringList m_slideshowFilenames;
     QString m_slideshowPath;
     int m_slideshowAPI;
+    bool m_slideshowWindow;
     QString m_translationsPathPrefix;
 
     /** @brief Initialize the simple settings below */

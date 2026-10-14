@@ -203,6 +203,7 @@ Branding::Branding( const QString& brandingFilePath, QObject* parent, qreal devi
     : QObject( parent )
     , m_descriptorPath( brandingFilePath )
     , m_slideshowAPI( 1 )
+    , m_slideshowWindow( false )
     , m_welcomeStyleCalamares( false )
     , m_welcomeExpandingLogo( true )
     , m_devicePixelRatio( devicePixelRatio )
@@ -644,6 +645,9 @@ Branding::initSlideshowSettings( const ::YAML::Node& doc )
             api = 1;
         }
         m_slideshowAPI = api;
+        m_slideshowWindow = ( doc[ "slideshowWindow" ] && doc[ "slideshowWindow" ].IsScalar() )
+            ? doc[ "slideshowWindow" ].as< bool >()
+            : false;
     }
 #else
     else if ( slideshow.IsScalar() )

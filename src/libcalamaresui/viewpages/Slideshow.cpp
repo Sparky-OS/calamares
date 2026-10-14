@@ -27,6 +27,7 @@
 #include <QQmlComponent>
 #include <QQmlEngine>
 #include <QQuickItem>
+#include <QQuickView>
 #include <QQuickWidget>
 #endif
 #include <QTimer>
@@ -41,20 +42,33 @@ Slideshow::~Slideshow() {}
 #ifdef WITH_QML
 SlideshowQML::SlideshowQML( QWidget* parent )
     : Slideshow( parent )
-    , m_qmlShow( new QQuickWidget )
+    , m_qmlShow( nullptr )
+    , m_qmlWindow( nullptr )
+    , m_qmlContainer( nullptr )
     , m_qmlComponent( nullptr )
     , m_qmlObject( nullptr )
 {
-    m_qmlShow->setObjectName( "qml" );
-
     Calamares::registerQmlModels();
 
-    m_qmlShow->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    m_qmlShow->setResizeMode( QQuickWidget::SizeRootObjectToView );
-    m_qmlShow->engine()->addImportPath( Calamares::qmlModulesDir().absolutePath() );
+    if ( Branding::instance()->slideshowWindow() )
+    {
+        m_qmlWindow = new QQuickView;
+        m_qmlWindow->setResizeMode( QQuickView::SizeRootObjectToView );
+        m_qmlContainer = QWidget::createWindowContainer( m_qmlWindow );
+        m_qmlContainer->setObjectName( "qml" );
+        m_qmlContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    }
+    else
+    {
+        m_qmlShow = new QQuickWidget;
+        m_qmlShow->setObjectName( "qml" );
+        m_qmlShow->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+        m_qmlShow->setResizeMode( QQuickWidget::SizeRootObjectToView );
+    }
+    showEngine()->addImportPath( Calamares::qmlModulesDir().absolutePath() );
 
-    cDebug() << "QML import paths:" << Logger::DebugList( m_qmlShow->engine()->importPathList() );
-    CALAMARES_RETRANSLATE( if ( m_qmlShow ) { m_qmlShow->engine()->retranslate(); } );
+    cDebug() << "QML import paths:" << Logger::DebugList( showEngine()->importPathList() );
+    CALAMARES_RETRANSLATE( if ( m_qmlShow || m_qmlWindow ) { showEngine()->retranslate(); } );
 
     if ( Branding::instance()->slideshowAPI() == 2 )
     {
@@ -68,12 +82,51 @@ SlideshowQML::~SlideshowQML()
     delete m_qmlObject;
     delete m_qmlComponent;
     delete m_qmlShow;
+    delete m_qmlContainer;
 }
 
 QWidget*
 SlideshowQML::widget()
 {
-    return m_qmlShow;
+    return m_qmlContainer ? m_qmlContainer : static_cast< QWidget* >( m_qmlShow );
+}
+
+QQmlEngine*
+SlideshowQML::showEngine() const
+{
+    return m_qmlWindow ? m_qmlWindow->engine() : m_qmlShow->engine();
+}
+
+QQuickItem*
+SlideshowQML::showRootObject() const
+{
+    return m_qmlWindow ? m_qmlWindow->rootObject() : m_qmlShow->rootObject();
+}
+
+void
+SlideshowQML::setShowSource( const QUrl& url )
+{
+    if ( m_qmlWindow )
+    {
+        m_qmlWindow->setSource( url );
+    }
+    else
+    {
+        m_qmlShow->setSource( url );
+    }
+}
+
+void
+SlideshowQML::setShowContent( const QUrl& url, QQmlComponent* component, QQuickItem* item )
+{
+    if ( m_qmlWindow )
+    {
+        m_qmlWindow->setContent( url, component, item );
+    }
+    else
+    {
+        m_qmlShow->setContent( url, component, item );
+    }
 }
 
 void
@@ -82,7 +135,7 @@ SlideshowQML::loadQmlV2()
     Calamares::MutexLocker l( &m_mutex );
     if ( !m_qmlComponent && !Calamares::Branding::instance()->slideshowPath().isEmpty() )
     {
-        m_qmlComponent = new QQmlComponent( m_qmlShow->engine(),
+        m_qmlComponent = new QQmlComponent( showEngine(),
                                             QUrl::fromLocalFile( Calamares::Branding::instance()->slideshowPath() ),
                                             QQmlComponent::CompilationMode::Asynchronous );
         connect( m_qmlComponent, &QQmlComponent::statusChanged, this, &SlideshowQML::loadQmlV2Complete );
@@ -113,7 +166,7 @@ SlideshowQML::loadQmlV2Complete()
             // It is marked \internal in the Qt sources, but does exactly
             // what is needed: sets up visual parent by replacing the root
             // item, and handling resizes.
-            m_qmlShow->setContent(
+            setShowContent(
                 QUrl::fromLocalFile( Calamares::Branding::instance()->slideshowPath() ), m_qmlComponent, m_qmlObject );
             if ( isActive() )
             {
@@ -170,10 +223,10 @@ SlideshowQML::changeSlideShowState( Action state )
         // API version 1 assumes onCompleted is the trigger
         if ( activate )
         {
-            m_qmlShow->setSource( QUrl::fromLocalFile( Calamares::Branding::instance()->slideshowPath() ) );
+            setShowSource( QUrl::fromLocalFile( Calamares::Branding::instance()->slideshowPath() ) );
         }
         // needs the root object for property setting, below
-        m_qmlObject = m_qmlShow->rootObject();
+        m_qmlObject = showRootObject();
     }
 
     // V1 API has picked up the root object for use, V2 passed it in.

@@ -16,13 +16,16 @@
 
 #include <QMutex>
 #include <QStringList>
+#include <QUrl>
 #include <QWidget>
 
 class QLabel;
 class QTimer;
 #ifdef WITH_QML
 class QQmlComponent;
+class QQmlEngine;
 class QQuickItem;
+class QQuickView;
 class QQuickWidget;
 #endif
 
@@ -104,7 +107,15 @@ public slots:
     void startSlideShow();
 
 private:
+    /// @brief The engine of the widget or the window running the show
+    QQmlEngine* showEngine() const;
+    QQuickItem* showRootObject() const;
+    void setShowSource( const QUrl& url );
+    void setShowContent( const QUrl& url, QQmlComponent* component, QQuickItem* item );
+
     QQuickWidget* m_qmlShow;
+    QQuickView* m_qmlWindow;  ///< Instead of m_qmlShow, if Branding::slideshowWindow()
+    QWidget* m_qmlContainer;  ///< Embeds m_qmlWindow in the page
     QQmlComponent* m_qmlComponent;
     QQuickItem* m_qmlObject;  ///< The actual show
 };
