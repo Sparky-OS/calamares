@@ -1,0 +1,6 @@
+---
+type:       "job"
+name:       "sparkyhooks"
+interface:  "process"
+command:    "/usr/lib/x86_64-linux-gnu/calamares/modules/sparkyhooks/sparkyhooks"
+timeout:    600

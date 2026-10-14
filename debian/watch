@@ -1,0 +1,6 @@
+Version: 5
+
+Source: https://codeberg.org/api/v1/repos/Calamares/@PACKAGE@/releases
+Matching-Pattern: https://codeberg.org/Calamares/@PACKAGE@/releases/download/v?[\d.]+/@PACKAGE@@ANY_VERSION@@ARCHIVE_EXT@
+Pgp-Mode: auto
+Search-Mode: plain

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Last update 2024/05/12 by pavroo
+
+DEVCHROOT=$(mount | grep proc | grep calamares | awk '{print $3}' | sed -e "s#/proc##g")
+
+if [ -f /sys/firmware/efi/efivars/SecureBoot-* ]; then
+	echo " * Checking is Secure Boot support properly installed..."
+	if [ ! -d "$DEVCHROOT/boot/efi/EFI/debian" ]; then
+		mkdir -p $DEVCHROOT/boot/efi/EFI/debian
+	fi
+	if [ ! -f "$DEVCHROOT/boot/efi/EFI/debian/*.efi" ]; then
+		cp $DEVCHROOT/boot/efi/EFI/sparky/* $DEVCHROOT/boot/efi/EFI/debian/
+	fi
+fi

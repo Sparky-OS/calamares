@@ -1,0 +1,4 @@
+settings.conf usr/share/calamares
+src/modules/*/*.conf usr/share/calamares/modules
+src/branding/sparky/* usr/share/calamares/branding/sparky
+sparky48-installer.png usr/share/pixmaps

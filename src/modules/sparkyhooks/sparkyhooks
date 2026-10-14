@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Last update 2024/08/19 by pavroo
+
+DEVCHROOT=$(mount | grep proc | grep calamares | awk '{print $3}' | sed -e "s#/proc##g")
+
+# set 755 chmod to / (root dir)
+chmod 755 $DEVCHROOT
+
+CHECKGRUB=`cat $DEVCHROOT/etc/default/grub | grep "GRUB_ENABLE_CRYPTODISK"`
+if [ -f "$DEVCHROOT/crypto_keyfile.bin" ]; then
+	if [ "$CHECKGRUB" = " " ]; then
+		echo "GRUB_ENABLE_CRYPTODISK=y" >> $DEVCHROOT/etc/default/grub
+	fi
+	# fix crypttab
+	mv $DEVCHROOT/etc/crypttab $DEVCHROOT/etc/crypttab.bak
+	awk '{gsub("none", "/crypto_keyfile.bin", $0); print}' $DEVCHROOT/etc/crypttab.bak > $DEVCHROOT/etc/crypttab
+fi
+
+# copy skel to home
+TARGETUSER=`cat $DEVCHROOT/etc/passwd | grep 1000 | awk -F ":" '{print $1}'`
+cd /etc/skel
+if [ ! -d $DEVCHROOT/home/$TARGETUSER ]; then
+	mkdir -p $DEVCHROOT/home/$TARGETUSER
+fi
+rsync -ar . $DEVCHROOT/home/$TARGETUSER
+
+#CHECKMAPPER=`cat $DEVCHROOT/etc/fstab | grep mapper`
+#if [ "$CHECKMAPPER" = " " ]; then
+## remove cryptsetup related debs if no disk encryption
+#MYCODE="apt-get purge lvm2 systemd-cryptsetup cryptsetup* --yes"
+#else
+## just exit
+#MYCODE="exit 0"
+#fi
+
+cat > $DEVCHROOT/tmp/sparkyfix << FOO
+#!/bin/bash
+chown -R $TARGETUSER:$TARGETUSER /home/$TARGETUSER
+# $MYCODE
+FOO
+
+chmod +x $DEVCHROOT/tmp/sparkyfix
+chroot $DEVCHROOT /tmp/sparkyfix
+rm -f $DEVCHROOT/tmp/sparkyfix
+

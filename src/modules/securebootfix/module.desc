@@ -1,0 +1,6 @@
+---
+type:       "job"
+name:       "securebootfix"
+interface:  "process"
+command:    "/usr/lib/x86_64-linux-gnu/calamares/modules/securebootfix/secure-boot-fix"
+timeout:    600
