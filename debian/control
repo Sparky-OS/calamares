@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Debian Qt/KDE Maintainers <debian-qt-kde@lists.debian.org>
 Uploaders: Jonathan Carter <jcc@debian.org>
 Build-Depends: cmake,
+               libplasma-dev,
                cryptsetup <!nocheck>,
                debhelper-compat (= 13),
                extra-cmake-modules,

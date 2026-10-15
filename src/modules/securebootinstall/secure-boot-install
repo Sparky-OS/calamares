@@ -5,15 +5,12 @@
 DEVCHROOT=$(mount | grep proc | grep calamares | awk '{print $3}' | sed -e "s#/proc##g")
 
 if [ -f /sys/firmware/efi/efivars/SecureBoot-* ]; then
-	if [ -d /lib/live/mount/medium/offlinesigned ]; then
-		mkdir -p $DEVCHROOT/debs
-		cp /lib/live/mount/medium/offlinesigned/* $DEVCHROOT/debs/
-	elif [ -d /run/live/medium/offlinesigned ]; then
-		mkdir -p $DEVCHROOT/debs
-		cp /run/live/medium/offlinesigned/* $DEVCHROOT/debs/
-	fi
+	#if [ -d /run/live/medium/offlinesigned ]; then
+	#	mkdir -p $DEVCHROOT/debs
+	#	cp /run/live/medium/offlinesigned/* $DEVCHROOT/debs/
+	#fi
 	
-	if [ -d "$DEVCHROOT/debs" ]; then
+	#if [ -d "$DEVCHROOT/debs" ]; then
 		echo " * Installing Secure Boot support..."
 		mv $DEVCHROOT/usr/sbin/grub-probe $DEVCHROOT/usr/sbin/grub-probe.bak
 		echo "exit 0" > $DEVCHROOT/usr/sbin/grub-probe
@@ -22,20 +19,22 @@ if [ -f /sys/firmware/efi/efivars/SecureBoot-* ]; then
 cat > $DEVCHROOT/tmp/signed-install << FOO
 #!/bin/bash
 #cd debs
-dpkg -i /debs/*.deb
-dpkg --configure -a
+#dpkg -i /debs/*.deb
+#dpkg --configure -a
+apt update
+apt install -y fwupd fwupd-amd64-signed grub-efi-amd64-signed grub-efi-amd64-signed-template libjcat1 mokutil shim-helpers-amd64-signed shim-helpers-amd64-signed-template shim-signed shim-signed-common shim-unsigned
 apt install -f -y
 #cd ..
 FOO
 		chmod +x $DEVCHROOT/tmp/signed-install
 		chroot $DEVCHROOT /tmp/signed-install
 		rm -f $DEVCHROOT/tmp/signed-install
-		rm -rf $DEVCHROOT/debs
+		#rm -rf $DEVCHROOT/debs
 		if [ ! -d "$DEVCHROOT/boot/efi/EFI/debian" ]; then
 			mkdir -p $DEVCHROOT/boot/efi/EFI/debian
 			cp $DEVCHROOT/boot/efi/EFI/sparky/* $DEVCHROOT/boot/efi/EFI/debian/
 		fi
 		rm -f $DEVCHROOT/usr/sbin/grub-probe
 		mv $DEVCHROOT/usr/sbin/grub-probe.bak $DEVCHROOT/usr/sbin/grub-probe
-	fi
+	#fi
 fi

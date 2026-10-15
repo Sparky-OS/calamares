@@ -1,3 +1,14 @@
+calamares (3.4.3~sparky9~4-1+stereo3d1) UNRELEASED; urgency=medium
+
+  * Build with the plasmalnf module (libplasma-dev at configure time) and the
+    two helper scripts of calamares-sparky 20261011 (49becf17), as Sparky ~4
+    ships them.
+  * Branding setting slideshowWindow: run the QML slideshow in a QQuickView
+    embedded in the page, for slideshow items that need a window of their own
+    (stereo pictures). Off by default.
+
+ -- Daniel Ramos (Capitain Jack) <Capitain_Jack@yahoo.com>  Thu, 15 Oct 2026 00:41:09 +0000
+
 calamares (3.4.3~sparky9~0-1) UNRELEASED; urgency=medium
 
   * Initial release. (Closes: #nnnn)  <nnnn is the bug number of your ITP>

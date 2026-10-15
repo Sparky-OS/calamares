@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Replaced apt installation with dpkg (offline) by pavroo
-# Last update 2026/03/12
+# Last update 2026/09/21
 
 DEVCHROOT=$(mount | grep proc | grep calamares | awk '{print $3}' | sed -e "s#/proc##g")
 
@@ -13,26 +13,28 @@ if [ -d /sys/firmware/efi/efivars ]; then
     chmod +x $DEVCHROOT/usr/sbin/grub-probe
     # chroot $DEVCHROOT apt-get --allow-unauthenticated -y install grub-efi
     mkdir -p $DEVCHROOT/boot/efi/EFI/sparky
-    mkdir -p $DEVCHROOT/debs
+    #mkdir -p $DEVCHROOT/debs
     #if [ -f /lib/live/mount/medium/offline/*.deb ]; then
     #	cp /lib/live/mount/medium/offline/* $DEVCHROOT/debs/
     #else
     #	cp /run/live/medium/offline/* $DEVCHROOT/debs/
     #fi
-    if [ -f /run/live/medium/offline/*.deb ]; then
-    	cp /run/live/medium/offline/* $DEVCHROOT/debs/
-    fi
-    if [ -f /run/live/medium/64offline/*.deb ]; then
-    	cp /run/live/medium/64offline/* $DEVCHROOT/debs/
-    fi
+    #if [ -f /run/live/medium/offline/*.deb ]; then
+    #	cp /run/live/medium/offline/* $DEVCHROOT/debs/
+    #fi
+    #if [ -f /run/live/medium/64offline/*.deb ]; then
+    # 	cp /run/live/medium/64offline/* $DEVCHROOT/debs/
+    #fi
     #cp /lib/live/mount/medium/offline/* $DEVCHROOT/debs/
     #chroot $DEVCHROOT dpkg -i /debs/*.deb
 
 cat > $DEVCHROOT/tmp/efi-install << FOO
 #!/bin/bash
 #cd debs
-dpkg -i /debs/*.deb
-dpkg --configure -a
+#dpkg -i /debs/*.deb
+#dpkg --configure -a
+apt update
+apt install -y efibootmgr grub-efi grub-efi-amd64 grub-efi-amd64-bin grub-efi-amd64-unsigned libefivar1t64 libefiboot1t64
 apt install -f -y
 #cd ..
 FOO
@@ -40,7 +42,7 @@ FOO
     chmod +x $DEVCHROOT/tmp/efi-install
     chroot $DEVCHROOT /tmp/efi-install
     rm -f $DEVCHROOT/tmp/efi-install
-    rm -rf $DEVCHROOT/debs
+    #rm -rf $DEVCHROOT/debs
     rm -f $DEVCHROOT/usr/sbin/grub-probe
     mv $DEVCHROOT/usr/sbin/grub-probe.bak $DEVCHROOT/usr/sbin/grub-probe
 fi
